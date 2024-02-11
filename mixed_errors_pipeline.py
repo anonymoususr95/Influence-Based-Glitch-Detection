@@ -1,15 +1,26 @@
+import itertools
 import os.path
 import argparse
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from torch.utils.data import TensorDataset
+from torch.utils.data import TensorDataset, Subset, ConcatDataset
 
+from ibed.experiments.anomaly_signal import compute_second_best_pil, calc_f1
 from ibed.influence_functions import TracInInfluenceTorch
 from ibed.signals_fast import InfluenceErrorSignals
 from .utils import train_test_loaders, run_model, get_last_ckpt, save_as_np, save_as_json
 from .pipeline.config_manager import ConfigManager
+from .pipeline.subset_generator import gen_save_subset
+from .pipeline.data_ops import dispatcher as data_dispatcher
+from .error_injection import mislabelled_uniform, inj_anomalies
+
+ood_datasets_dict = {
+    'mnist': 'fmnist',
+    'fmnist': 'mnist',
+    'cifar10': 'fmnist',
+}
 
 import torch
 from .pipeline.utils import load_model
@@ -18,9 +29,8 @@ from .pipeline.calc_influence import compute_inf_mat
 def parse_args():
 	parser = argparse.ArgumentParser()
 	# Dataset arguments
-	parser.add_argument("--train_data_fp", required=True, type=str)
-	parser.add_argument("--test_data_fp", required=True, type=str)
-	parser.add_argument("--num_classes", required=True, type=int)
+	parser.add_argument("--subset_ratio", required=True, type=str)
+	parser.add_argument("--dataset_name", required=True, type=str)
 
 	# Model arguments
 	parser.add_argument("--model_name", required=True, type=str)
@@ -61,10 +71,84 @@ def compute_il_unreduced(train_test_inf, y_train, y_test, neg_only):
 if __name__ == "__main__":
 	args = parse_args()
 
-	trainset = torch.load(args.train_data_fp)
-	testset = torch.load(args.test_data_fp)
+	dfolder_name = (
+		f"subset_{args.seed}_{args.subset_ratio}" if not args.no_subset else "full"
+	)
+	data_savedir = os.path.join("results", args.data_name, dfolder_name)
 
-	trainset_labels = trainset.tensors[1]
+	# Generate Subset
+
+	print(f"Generating the subset for {args.data_name} with ratio {args.subset_ratio}")
+
+	trainset, testset, trainset_labels, testset_labels = data_dispatcher[
+		args.data_name
+	]().load_data(args.data_folder)
+
+	trainset = gen_save_subset(
+		trainset,
+		trainset_labels,
+		args.subset_ratio,
+		data_savedir,
+		"clean_train.pt",
+		args.seed,
+	)
+	testset = gen_save_subset(
+		testset,
+		testset_labels,
+		args.subset_ratio,
+		data_savedir,
+		"clean_test.pt",
+		args.seed,
+	)
+
+	error_names = []
+	dirty_test_sets = []
+
+	trainset, error_col = mislabelled_uniform(
+		dataset=trainset,
+		labels=trainset.tensors[1].numpy(),
+		contamination_ratio=0.1,
+		random_seed=args.seed
+	)
+
+	dirty_ids = np.where(error_col == 1)[0]
+	clean_ids = np.where(error_col == 0)[0]
+	clean_trainset, errors_trainset = Subset(trainset, clean_ids), Subset(trainset, dirty_ids)
+	dirty_test_sets.append(errors_trainset)
+	error_names.append(['mu'] * len(dirty_ids))
+
+	# inject ood
+
+	_, ood_testset, _, _ = data_dispatcher[
+		ood_datasets_dict[args.dataset_name]
+	]().load_data(args.data_folder)
+	trainset, error_col = inj_anomalies(
+		dataset=TensorDataset(trainset, trainset_labels),
+		labels=trainset_labels.numpy(),
+		ood_dataset=ood_testset,
+		contamination_ratio=0.1,
+		random_seed=args.seed,
+		unclustered=False
+	)
+	dirty_ids = np.where(error_col == 1)[0]
+	clean_ids = np.where(error_col == 0)[0]
+	clean_trainset, errors_trainset = Subset(trainset, clean_ids), Subset(trainset, dirty_ids)
+	dirty_test_sets.append(errors_trainset)
+	error_names.append(['ua'] * len(dirty_ids))
+
+	final_dataset = ConcatDataset([clean_trainset, *dirty_test_sets])
+	final_dataset_samples = torch.stack([sample[0] for sample in final_dataset])
+	final_dataset_labels = torch.tensor([sample[1] for sample in final_dataset])
+	final_dataset = TensorDataset(final_dataset_samples, final_dataset_labels)
+
+	clean_names = ['clean'] * len(clean_trainset)
+	sample_names = np.array([*clean_names, *list(itertools.chain.from_iterable(error_names))])
+
+	error_col = np.array([0] * len(sample_names))
+	dirty_s = np.where(sample_names != 'clean')[0]
+	error_col[dirty_s] = 1
+
+	trainset_labels = final_dataset.tensors[1]
 	testset_labels = testset.tensors[1]
 
 	# Run clean model on subset
@@ -146,7 +230,7 @@ if __name__ == "__main__":
 	save_as_np(train_test_im, os.path.join(error_savedir, 'train_test_im.npy'))
 
 
-	# calculate CFI, CFID
+	# calculate CNCI
 
 	ies = InfluenceErrorSignals()
 	_, nil_opt_labels = ies.nil_opt_fast(train_test_inf_mat=train_test_im,
@@ -164,53 +248,38 @@ if __name__ == "__main__":
 		fast_cp=fast_cp,
 	)
 
-	# CFI
+	# CNCI
 
-	rnil, _ = ies.nil_fast(train_test_inf_mat=im_new, y_train=trainset_labels, y_test=testset_labels)
-	rnil = pd.DataFrame(-rnil)
+	cnci, _ = -ies.nil_fast(train_test_inf_mat=im_new, y_train=trainset_labels, y_test=testset_labels)
 
-	rnil.to_csv(os.path.join(error_savedir, 'rnil.csv'), index=False)
+	print('CNCI F1', calc_f1(scores=cnci, error_col=error_col, contamination=args.contamination))
 
-	# CFID
+	# PCID
 
-	nil_unreduced = compute_il_unreduced(
-		train_test_inf=train_test_im,
-		y_train=trainset_labels,
-		y_test=testset_labels,
-		neg_only=True
+	ies = InfluenceErrorSignals()
+
+	positive_counterfactuals = compute_second_best_pil(train_test_inf=train_test_im,
+													   y_train=trainset_labels,
+													   y_test=testset_labels)
+
+	im_new = tracin_cp.compute_train_to_test_influence(
+		train_set=TensorDataset(trainset.tensors[0], torch.tensor(positive_counterfactuals)),
+		test_set=testset,
+		load_pretrained_model=True,
+		batch_size=inf_batch_size,
+		layers=dirty_model.trainable_layer_names(),
+		epoch_ids_to_consider=[cm.training_conf.get_epochs()],
+		fast_cp=True,
 	)
 
-	pil_unreduced = compute_il_unreduced(
-		train_test_inf=train_test_im,
-		y_train=trainset_labels,
-		y_test=testset_labels,
-		neg_only=False
-	)
+	pil_unreduced = compute_il_unreduced(train_test_inf=train_test_im, y_train=trainset_labels, y_test=testset_labels)
 
-	nil_cf_unreduced = compute_il_unreduced(
-		train_test_inf=im_new,
-		y_train=trainset_labels,
-		y_test=testset_labels,
-		neg_only=True
-	)
+	pil_unreduced_cf = compute_il_unreduced(train_test_inf=im_new, y_train=positive_counterfactuals, y_test=testset_labels)
 
-	pil_cf_unreduced = compute_il_unreduced(
-		train_test_inf=im_new,
-		y_train=trainset_labels,
-		y_test=testset_labels,
-		neg_only=False
-	)
+	norm = np.linalg.norm(pil_unreduced - pil_unreduced_cf, ord=np.inf, axis=0)
 
-	ncfid = np.linalg.norm(nil_unreduced - nil_cf_unreduced, axis=0)
-	pcfid = np.linalg.norm(pil_unreduced - pil_cf_unreduced, axis=0)
+	w = ies.mpi_fast(train_test_inf_mat=train_test_im)
 
-	# Counter factual minimum rank influence difference
-	ncfid_rank = pd.DataFrame(index=np.argsort(ncfid))
-	ncfid_rank['ncfid_r'] = np.arange(len(ncfid))
-	pcfid_rank = pd.DataFrame(index=np.argsort(pcfid))
-	pcfid_rank['pcfid_r'] = np.arange(len(pcfid))
-	cfid_ranks = pd.concat([ncfid_rank, pcfid_rank], axis=1).min(axis=1)
+	pcid = 1 / (w * norm)
 
-	cfid_ranks_df = pd.DataFrame(cfid_ranks)
-
-	cfid_ranks_df.to_csv(os.path.join(error_savedir, 'cfid.csv'), index=False)
+	print('PCID F1', calc_f1(scores=pcid, error_col=error_col, contamination=args.contamination))
