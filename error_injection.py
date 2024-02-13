@@ -48,7 +48,7 @@ def mislabelled_cb(dataset, labels, random_seed=None, contamination_ratio=0.1, c
 	combs2 = {v: k for k, v in combinations(unq_labels, 2)}
 	combs = {**combs1, **combs2}
 	assert len(combs) == len(unq_labels)
-	for i, c1, c2 in enumerate(combs.items()):
+	for i, (c1, c2) in enumerate(combs.items()):
 		if i >= classes_to_cont:
 			break
 		base_class_ids = np.where(labels == c1)[0]
