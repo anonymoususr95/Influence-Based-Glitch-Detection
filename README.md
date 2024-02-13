@@ -48,8 +48,20 @@ The validation performance of each model for a data glitch are reported in the t
 |    CIFAR-10   | ConvNeXt | 0.85 $\pm$ 0.01     | 0.85 $\pm$ 0.00   | 0.87 $\pm$ 0.00 |
 
 
-## Class-Based Detection
+## Class-Based Detection for 5 runs with different random seeds
 Comparison of F1-Score on 10% class-dependent noise detection between CNCI and existing influence signals. Note that in this case, 10% of the samples of each class are relabeled to another random class. CNCI is on par or better on detecting class-based mislabeled samples.
 
 ![mcb_sigs_cont_all](https://github.com/anonymoususr95/Influence-Based-Glitch-Detection/assets/159195769/fa0ce8b0-a9a7-44e3-a11e-c23d6c1b2f06)
+
+## Unreduced F1-Score for Data/Model pairs for 5 runs with different random seeds
+
+### Uniform Class Noise
+![raw_mu_sigs](https://github.com/anonymoususr95/Influence-Based-Glitch-Detection/assets/159195769/63666b97-9230-409b-b926-09077075e1ec)
+
+### Class-based Noise (contamination of one random class with 10% mislabeled samples)
+![raw_mcb_sigs](https://github.com/anonymoususr95/Influence-Based-Glitch-Detection/assets/159195769/73b5e95e-ba1a-4406-b55c-f6d53d142c30)
+
+### Anomalies
+![raw_anom_sigs](https://github.com/anonymoususr95/Influence-Based-Glitch-Detection/assets/159195769/fc048f55-9a5e-40a2-855d-0f61ae3adb39)
+
 
