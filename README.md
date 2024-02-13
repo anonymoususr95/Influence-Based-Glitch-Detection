@@ -1,6 +1,6 @@
 # Data Glitches Discovery using Influence-based Model Explanation
 
-This tepository contains the code of the paper Data Glitches Discovery using Influence-based Model Explanation.
+This repository contains the code of the paper Data Glitches Discovery using Influence-based Model Explanation.
 
 ## Installation and Running Instructions
 
