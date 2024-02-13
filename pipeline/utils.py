@@ -7,7 +7,7 @@ import torch
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
-from ibed.models import dispatcher as model_dispatcher
+from models import dispatcher as model_dispatcher
 
 
 def load_model(model_config, input_shape, num_classes, ckpt_path=None):

@@ -2,21 +2,23 @@ import os.path
 import argparse
 from pathlib import Path
 import numpy as np
-from sklearn.metrics import f1_score
+import pandas as pd
 
-from ibed.influence_functions import TracInInfluenceTorch
-from .utils import train_test_loaders, run_model, get_last_ckpt, save_as_np, save_as_json, calc_f1
+from influence_functions import TracInInfluenceTorch
+from utils import train_test_loaders, run_model, get_last_ckpt, save_as_np, save_as_json, calc_f1
 
 from torch.utils.data import TensorDataset
 
+import matplotlib.pyplot as plt
+
 import torch
-from .signals_fast import InfluenceErrorSignals
-from .error_injection import inj_anomalies
-from .pipeline.config_manager import ConfigManager
-from .pipeline.data_ops import dispatcher as data_dispatcher
-from .pipeline.subset_generator import gen_save_subset
-from .pipeline.utils import load_model
-from .pipeline.calc_influence import compute_inf_mat
+from signals_fast import InfluenceErrorSignals
+from error_injection import inj_anomalies
+from pipeline.config_manager import ConfigManager
+from pipeline.data_ops import dispatcher as data_dispatcher
+from pipeline.subset_generator import gen_save_subset
+from pipeline.utils import load_model
+from pipeline.calc_influence import compute_inf_mat
 
 
 def compute_il_unreduced(train_test_inf, y_train, y_test):
@@ -56,15 +58,6 @@ def parse_args():
 	parser.add_argument("--device", required=True, type=str, default="cpu")
 
 	return parser.parse_args()
-
-
-def save_update_datasets(trainset, testset, dirty_dataset, fp, train_error):
-	torch.save(dirty_dataset, fp)
-	if train_error:
-		trainset = dirty_dataset
-	else:
-		testset = dirty_dataset
-	return trainset, testset
 
 
 def compute_second_best_pil(train_test_inf, y_train, y_test):
@@ -133,34 +126,6 @@ if __name__ == "__main__":
 	num_classes = len(trainset.tensors[1].unique())
 	input_shape = trainset.tensors[0].shape[1:]
 
-	clean_model = load_model(
-		model_config=cm.model_conf, input_shape=input_shape, num_classes=num_classes
-	)
-
-	print(f"Running the model config {cm.model_conf.data} on clean.")
-
-	clean_trainloader, clean_testloader = train_test_loaders(
-		train_set=trainset,
-		test_set=testset,
-		batch_size=cm.training_conf.get_batch_size(),
-		seed=args.seed,
-	)
-
-	clean_ckpt_savedir = os.path.join(model_savedir, 'clean', 'ckpts')
-
-	Path(clean_ckpt_savedir).mkdir(parents=True, exist_ok=True)
-
-	clean_model, clean_m_info, clean_m_preds_info = run_model(
-		trainloader=clean_trainloader,
-		testloader=clean_testloader,
-		clean_model=clean_model,
-		cm=cm,
-		ckpt_savedir=clean_ckpt_savedir,
-		device=args.device,
-	)
-
-	save_as_json(clean_m_info, os.path.join(model_savedir, 'clean', 'model_info.json'))
-
 	# Add Errors
 
 	error_savedir = os.path.join(
@@ -172,9 +137,6 @@ if __name__ == "__main__":
 
 	error_col = None
 
-	dataset_to_infect = trainset
-	dataset_to_infect_labels = trainset_labels
-
 	Path(error_savedir).mkdir(parents=True, exist_ok=True)
 
 	if args.ood_data_name is None:
@@ -183,24 +145,17 @@ if __name__ == "__main__":
 		args.ood_data_name
 	]().load_data(args.data_folder)
 	dirty_dataset, error_col = inj_anomalies(
-		dataset=dataset_to_infect,
-		labels=dataset_to_infect_labels,
+		dataset=trainset,
+		labels=trainset_labels,
 		ood_dataset=ood_testset,
 		contamination_ratio=args.contamination,
 		random_seed=args.seed,
 	)
-	trainset, testset = save_update_datasets(
-		trainset=trainset,
-		testset=testset,
-		dirty_dataset=dirty_dataset,
-		fp=os.path.join(error_savedir, 'dirty_train.pt'),
-		train_error=args.inject_error_train
-	)
 
-	trainset_labels = trainset.tensors[1]
-	testset_labels = testset.tensors[1]
+	trainset = dirty_dataset
+	trainset_labels = dirty_dataset.tensors[1]
 
-	error_info = {"contamination": args.contamination, "error": args.error}
+	error_info = {"contamination": args.contamination, "error": 'anomalies'}
 
 	save_as_np(error_col, os.path.join(error_savedir, 'error_col.npy'))
 	save_as_json(error_info, os.path.join(error_savedir, 'error_info.json'))
@@ -232,49 +187,38 @@ if __name__ == "__main__":
 		device=args.device,
 	)
 
-	save_as_json(dirty_m_info, os.path.join(error_savedir, 'model_info.json'))
-
 	# Compute influence matrix
 
 	self_inf_arr, train_test_im = None, None
 
-	if not args.no_inf_computation:
-		if not args.no_train_on_dirty:
-			dirty_model_last_ckpt = get_last_ckpt(dirty_ckpt_savedir)
-			state_dict = torch.load(dirty_model_last_ckpt)
-			dirty_model.load_state_dict(state_dict["model_state_dict"])
+	tracin_cp = TracInInfluenceTorch(
+		model_instance=dirty_model,
+		save_models_path=dirty_ckpt_savedir,
+		random_state=args.seed,
+		input_shape=None,
+		learning_rate=None,
+		batch_size=None,
+		epochs=None,
+		reg_strength=None,
+	)
 
-		tracin_cp = TracInInfluenceTorch(
-			model_instance=dirty_model,
-			save_models_path=dirty_ckpt_savedir,
-			random_state=args.seed,
-			input_shape=None,
-			learning_rate=None,
-			batch_size=None,
-			epochs=None,
-			reg_strength=None,
-		)
+	fast_cp = False
+	inf_batch_size = 4096
 
-		fast_cp = False
-		inf_batch_size = 4096
+	if args.inf_fn_conf:
+		inf_batch_size = cm.inf_func_conf.batch_size()
+		fast_cp = cm.inf_func_conf.fast_cp()
 
-		if args.inf_fn_conf:
-			inf_batch_size = cm.inf_func_conf.batch_size()
-			fast_cp = cm.inf_func_conf.fast_cp()
-
-		self_inf_arr, train_test_im = compute_inf_mat(
-			tracin_cp,
-			trainset,
-			testset,
-			dirty_model.trainable_layer_names(),
-			e_id=None,
-			column_wise=False,
-			batch_size=inf_batch_size,
-			fast_cp=fast_cp
-		)
-
-		save_as_np(self_inf_arr, os.path.join(error_savedir, 'self_inf.npy'))
-		save_as_np(train_test_im, os.path.join(error_savedir, 'train_test_im.npy'))
+	self_inf_arr, train_test_im = compute_inf_mat(
+		tracin_cp,
+		trainset,
+		testset,
+		dirty_model.trainable_layer_names(),
+		e_id=None,
+		column_wise=False,
+		batch_size=inf_batch_size,
+		fast_cp=fast_cp
+	)
 
 	# Compute influence signals
 
@@ -291,8 +235,6 @@ if __name__ == "__main__":
 													   y_train=y_train,
 													   y_test=y_test)
 
-
-
 	im_new = tracin_cp.compute_train_to_test_influence(
 		train_set=TensorDataset(trainset.tensors[0], torch.tensor(positive_counterfactuals)),
 		test_set=testset,
@@ -303,25 +245,36 @@ if __name__ == "__main__":
 		fast_cp=True,
 	)
 
-	pil_unreduced = compute_il_unreduced(train_test_inf=train_test_im, y_train=y_train, y_test=y_test)
+	pil_unreduced, _ = compute_il_unreduced(train_test_inf=train_test_im, y_train=y_train, y_test=y_test)
 
-	pil_unreduced_cf = compute_il_unreduced(train_test_inf=im_new, y_train=positive_counterfactuals, y_test=y_test)
+	pil_unreduced_cf, _ = compute_il_unreduced(train_test_inf=im_new, y_train=positive_counterfactuals, y_test=y_test)
 
 	norm = np.linalg.norm(pil_unreduced - pil_unreduced_cf, ord=np.inf, axis=0)
 
-	w = ies.mpi_fast(train_test_inf_mat=train_test_im)
+	w, _ = ies.mpi_fast(train_test_inf_mat=train_test_im)
 
 	pcid = 1/(w * norm)
 
 	# other signals
 
 	si = self_inf_arr
-	mai = ies.mai_fast(train_test_inf_mat=train_test_im)
-	gd_class = ies.gd_class_fast(train_test_inf_mat=train_test_im, y_train=y_train, y_test=y_test)
-	mi = ies.mi_fast(train_test_inf_mat=train_test_im)
+	mai, _ = ies.mai_fast(train_test_inf_mat=train_test_im)
+	gd_class, _ = ies.gd_class_fast(train_test_inf_mat=train_test_im, y_train=y_train, y_test=y_test)
+	mi, _ = ies.mi_fast(train_test_inf_mat=train_test_im)
 
-	print('PCID F1', calc_f1(scores=pcid, error_col=error_col, contamination=args.contamination))
-	print('SI F1', calc_f1(scores=si, error_col=error_col, contamination=args.contamination))
-	print('MAI F1', calc_f1(scores=mai, error_col=error_col, contamination=args.contamination))
-	print('GD-Class F1', calc_f1(scores=gd_class, error_col=error_col, contamination=args.contamination))
-	print('MI F1', calc_f1(scores=mi, error_col=error_col, contamination=args.contamination))
+	pcid_f1 = calc_f1(scores=pcid, error_col=error_col, contamination=args.contamination)
+	si_f1 = calc_f1(scores=si, error_col=error_col, contamination=args.contamination)
+	mai_f1 = calc_f1(scores=mai, error_col=error_col, contamination=args.contamination)
+	gd_class_f1 = calc_f1(scores=gd_class, error_col=error_col, contamination=args.contamination)
+	mi_f1 = calc_f1(scores=mi, error_col=error_col, contamination=args.contamination)
+
+	f1_perfs = [pcid_f1, si_f1, mai_f1, gd_class_f1, mi_f1]
+	names = ['PCID (ours)', 'SI', 'MAI', 'GD-class', 'MI']
+	pd.DataFrame(f1_perfs, names).T.plot.bar(rot=0)
+	plt.xticks([])
+	plt.xlabel('Influence-based signals for ' + args.model_name)
+	plt.ylabel('F1-Score')
+	plt.ylim((0,1))
+	plt.title(args.data_name + ' anomalies')
+	plt.savefig('anomalies.png')
+	plt.show()

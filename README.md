@@ -12,7 +12,7 @@ Install the necessary packages by running `pip install -r requirements.txt`
 
 Run `make demo_single` that runs CNCI (for uniform-class noise and class-dependent noise)  and PCID (anomalies) for ResNet-20 on Fashion MNIST dataset. The output is a barplot showing the F1-score of CNCI (or PCID) w.r.t. the existing influence-based signals (SI, MAI, MI and GD-class).
 
-Run `make demo_mixed` that runs CFRank (the proposed mixed signal), CNCI, and PCID for ResNet-20 on MNIST dataset with mixed errors. The output is a barplot showing the F1-score of the three signals and the error characterization accuracy.
+Run `make demo_mixed` that runs CFRank (the proposed mixed signal), CNCI, and PCID for ResNet-20 on MNIST dataset with mixed errors. The output (printed in the console) is the F1-scores of the three signals and the error characterization accuracy.
 
 **Note**: In case of memory error, consider *decreasing* the "batch_size" in the json file "configs/resnet/tracin_resnet.json". 
 

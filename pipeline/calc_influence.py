@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ..influence_functions.tracin_torch import TracInInfluenceTorch
+from influence_functions.tracin_torch import TracInInfluenceTorch
 from .config_manager import ConfigManager
 from .utils import load_model
 
