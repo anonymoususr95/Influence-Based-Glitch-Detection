@@ -224,7 +224,9 @@ if __name__ == "__main__":
 
     f1_perfs = [cnci_f1, si_f1, mai_f1, gd_class_f1, mi_f1]
     names = ['CNCI (ours)', 'SI', 'MAI', 'GD-class', 'MI']
-    pd.DataFrame(f1_perfs, names).T.plot.bar(rot=0)
+    df = pd.DataFrame(f1_perfs, names)
+    print(df)
+    df.T.plot.bar(rot=0)
     plt.xticks([])
     plt.xlabel('Influence-based signals for ' + args.model_name)
     plt.ylabel('F1-Score')
