@@ -4,8 +4,6 @@ This repository contains the code of the paper Data Glitches Discovery using Inf
 
 ## Installation and Running Instructions
 
-### Experimental Setting
-
 **Note**: The experiments run on a 16-core Intel Xeon cpu, 64GB ram and no gpu. In our experiments we have used Python 3.9.
 
 Install the necessary packages by running `pip install -r requirements.txt`
