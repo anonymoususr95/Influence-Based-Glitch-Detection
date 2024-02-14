@@ -33,7 +33,7 @@ Subsequently we report per dataset the learning rate, batch size and epochs that
 
 ## Validation Performance 
 
-The validation performances (accyracy on a validation set) of each model for a data glitch are reported in the table below. Note that the errors are presented in the training sets.
+The validation performances (accuracy on a validation set) of each model for a data glitch are reported in the table below. Note that the errors are presented in the training sets.
 
 | Dataset       | Model    | Uniform Class Noise | Class-based Noise | Anomalies       |
 |---------------|----------|---------------------|-------------------|-----------------|
@@ -54,6 +54,8 @@ Comparison of F1-Score on 10% class-dependent noise detection between CNCI and e
 ![mcb_sigs_cont_all](https://github.com/anonymoususr95/Influence-Based-Glitch-Detection/assets/159195769/fa0ce8b0-a9a7-44e3-a11e-c23d6c1b2f06)
 
 ## Unreduced F1-Score for Data/Model pairs for 5 runs with different random seeds
+
+We report the unreduced performances from the comparative plots for the different models and datasets reported in the paper.
 
 ### Uniform Class Noise
 ![raw_mu_sigs](https://github.com/anonymoususr95/Influence-Based-Glitch-Detection/assets/159195769/63666b97-9230-409b-b926-09077075e1ec)
