@@ -33,7 +33,7 @@ Subsequently we report per dataset the learning rate, batch size and epochs that
 
 ## Validation Performance 
 
-The validation performance of each model for a data glitch are reported in the table below. Note that the errors are presented in the training sets.
+The validation performances (accyracy on a validation set) of each model for a data glitch are reported in the table below. Note that the errors are presented in the training sets.
 
 | Dataset       | Model    | Uniform Class Noise | Class-based Noise | Anomalies       |
 |---------------|----------|---------------------|-------------------|-----------------|
