@@ -64,4 +64,23 @@ We report the unreduced performances from the comparative plots for the differen
 ### Anomalies
 ![raw_anom_sigs](https://github.com/anonymoususr95/Influence-Based-Glitch-Detection/assets/159195769/fc048f55-9a5e-40a2-855d-0f61ae3adb39)
 
+## Additional Experiments 
+
+### Experiments on Tabular Data 
+
+In this experiment we used three deep learning models namely MLP, Resnet and FT-Transformer, that have been proven to be effective for various tabular datasets [NIPS '21](https://proceedings.neurips.cc/paper_files/paper/2021/file/9d86d83f925f2149e9edb0ac3b49229c-Paper.pdf). We employed three diverse datasets with different sample and feature size, namely Forest Cover, Jannis and Epsilon. We injected 10% uniform mislabeled samples in the training set of each dataset. Note that we followed the same evaluation pipeline described in our manuscript. In the figure below, we observe that the proposed CNCI signal outperforms all prior influence-based signals for the three models and datasets, detecting uniform mislabeled samples with 0.65 F1-score on average.
+
+![additional_experiments](https://github.com/anonymoususr95/Influence-Based-Glitch-Detection/assets/159195769/ee7733bf-abfa-4b24-beed-97fd026251df)
+
+### Ablation Study on Glitch Ratio
+
+In this experiment we tried different anomaly and mislabeled ratios ranging from 1% up to 30%. 
+
+Subsequently we present the influence-based signals F1-score for increasing mislabeled ratio. CNCI outperforms the influence-based signals in every dataset for both models, especially for low class-noise ratios. Specifically, for a 1% ratio CNCI achieves 36% better F1-score on average than SI (second-best signal).
+
+![mislabelled_uniform_noise_exp](https://github.com/anonymoususr95/Influence-Based-Glitch-Detection/assets/159195769/82cec48e-4f45-4dec-a586-b21a7ca9ae46)
+
+As depicted in the figure below, for the anomalous samples, the performance of PCID increases as the anomaly ratio increases. Note that the performance significantly decreases for smaller anomaly ratios. 
+
+![ood_far_cl_noise_exp](https://github.com/anonymoususr95/Influence-Based-Glitch-Detection/assets/159195769/f199878d-7123-49ca-b425-df6f3399b877)
 
