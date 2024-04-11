@@ -1,6 +1,6 @@
 # Data Glitches Discovery using Influence-based Model Explanation
 
-This repository contains the code of the paper Data Glitches Discovery using Influence-based Model Explanation.
+This repository contains the code of the paper Data Glitches Discovery using Influence-based Model Explanation. For the additional experiements, go at the end of the file.
 
 ## Installation and Running Instructions
 
@@ -13,6 +13,10 @@ Run `make demo_single` that runs CNCI (for uniform-class noise, class-dependent 
 Run `make demo_mixed` that runs CFRank (the proposed mixed signal), CNCI, and PCID for ResNet-20 on the MNIST dataset with mixed errors, both mislabeled and anomalous samples. The output (printed in the console) is the F1-scores of the three signals and the error characterization accuracy, i.e., how accurately a detected error is being characterized.
 
 **Note**: In case of memory error, consider *decreasing* the "batch_size" in the json file "configs/resnet/tracin_resnet.json". 
+
+## Pipeline Overview
+
+![pipeline](https://github.com/anonymoususr95/Influence-Based-Glitch-Detection/assets/159195769/f6af369b-c00e-4602-bd9d-f2956560b061)
 
 ## Training Settings 
 Subsequently we report per dataset the learning rate, batch size and epochs that we train each foundational model. 
@@ -55,13 +59,15 @@ Comparison of F1-Score on 10% class-dependent noise detection between CNCI and e
 
 We report the unreduced performances from the comparative plots for the different models and datasets reported in the paper.
 
-### Uniform Class Noise
+### Uniform Class Noise (Performance per dataset)
 ![raw_mu_sigs](https://github.com/anonymoususr95/Influence-Based-Glitch-Detection/assets/159195769/63666b97-9230-409b-b926-09077075e1ec)
 
-### Class-based Noise (contamination of one random class with 10% mislabeled samples)
+### Class-based Noise (Performance per dataset) 
+In the following plots, we contaminated one class at random (selected class changes with random seed) with 10% mislabeled samples of another class.
+
 ![raw_mcb_sigs](https://github.com/anonymoususr95/Influence-Based-Glitch-Detection/assets/159195769/73b5e95e-ba1a-4406-b55c-f6d53d142c30)
 
-### Anomalies
+### Anomalies (Performance per dataset)
 ![raw_anom_sigs](https://github.com/anonymoususr95/Influence-Based-Glitch-Detection/assets/159195769/fc048f55-9a5e-40a2-855d-0f61ae3adb39)
 
 ## Additional Experiments 
@@ -84,3 +90,25 @@ As depicted in the figure below, for the anomalous samples, the performance of P
 
 ![ood_far_cl_noise_exp](https://github.com/anonymoususr95/Influence-Based-Glitch-Detection/assets/159195769/f199878d-7123-49ca-b425-df6f3399b877)
 
+### K&L vs TracIn IF Approximation Quality to LOOR 
+We run apprixmation experiments using both IFs. LOOR is considered the gold standard of influence and each IF is considered qualitative if it provides better LOOR approximation. For these experiments TracIn has been proven to provide more accurate approximations and thus has been chosen in our experimental evaluation. Specifically, in the plots below we show the ECDF for TracIn and K&L IFs on approximating the LOOR, which is a standard experiment in each influence function work. We have used two tabular (Breast cancer, wine), and one image dataset (MNIST). A good approximation is when the area under an ECDF curve is as small as possible, indicating for the majority of the samples, the correlation their train-to-validation influence is positively correlated with LOOR. Note that we performed this experiment for each training sample in the dataset. In the tables below the two Figures, we observe that TracIn approximates better the LOOR than K&L exhibiting a higher positive correlation.
+
+<img width="992" alt="koh_vs_tracin" src="https://github.com/anonymoususr95/Influence-Based-Glitch-Detection/assets/159195769/11f80a7a-4135-4998-8882-fbac2878743a">
+
+### Analysis of Different Glitches in Training Set
+
+Subsequently we report a table showing the average loss and accuracy on clean, mislabeled and anomalous samples. The glitch ratio is 10%. We observe that ResNet learns the anomalies acheiving 100% accuracy and a smaller average loss than in clean samples. On the other hand, the model does not learn the mislabeled samples.
+
+| Dataset       | Model    | Avg. Loss / Acc. of Clean Train Samples | Avg. Loss / Acc. of Mislabeled Samples| Avg. Loss / Acc. of Anomalies|
+|---------------|----------|:---------------------:|:-------------------:|:-----------------:|
+|     MNIST     | ResNet-20   |  1.60 / 97%          |     2.35 / 5%    |    1.47 / 100% |
+|     F-MNIST   | ResNet-20      | 1.67 / 91%          |     2.35 / 9%    |     1.48 / 100% |
+|     CIFAR-10  | ResNet-20 | 1.76 / 95%          |     2.38 / 6%    |     1.59 / 100% |
+
+The next table illustrates the validation performance difference (accuracy) w.r.t. clean model performance, i.e., no glitches in the training set. Specifically, each cell represents the glitched_train_validation_accuracy - clean_train_validation_accuracy. Note that in the case of uniform class noise, the performance is mostly negative (the uniform mislabeled samples affect the performance). Interestingly enough, when trained with anomalies, ResNet has mostly better performance w.r.t. the clean train set. This is a behavior that may be attributed to these samples; thus, the existence of such anomalies should be reported to the model expert. 
+
+| Dataset       | Model    | Uniform Class Noise | Anomalies |
+|---------------|----------|:---------------------:|:-----------:|
+| MNIST         | ResNet-20   | -2.00 %             | -0.60 %    |
+| Fashion MNIST | ResNet-20   | -0.10 %               | 3.10 %     |
+| CIFAR-10      | ResNet-20   | 0.00  %              | 1.90 %     |
