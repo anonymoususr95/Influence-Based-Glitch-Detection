@@ -110,5 +110,9 @@ The next table illustrates the validation performance difference (accuracy) w.r.
 | Dataset       | Model    | Uniform Class Noise | Anomalies |
 |---------------|----------|:---------------------:|:-----------:|
 | MNIST         | ResNet-20   | -0.2             | -0.006    |
-| Fashion MNIST | ResNet-20   | -0.01               | 0.31     |
+| Fashion MNIST | ResNet-20   | -0.01               | +0.31     |
 | CIFAR-10      | ResNet-20   | 0.00               | +0.19     |
+
+The next figure shows the relation of increasing self influence (SI) values and prediction accuracy. We can observe that the clean samples with higher SI values exhibit a substantially smaller prediction accuracy than the ones with low SI. These high SI samples are hard-but-clean samples that confuse SI to detect them as mislabeled. 
+
+![hard_samples](https://github.com/anonymoususr95/Influence-Based-Glitch-Detection/assets/159195769/577924df-de0f-49bd-8e50-c145a36b1404)
