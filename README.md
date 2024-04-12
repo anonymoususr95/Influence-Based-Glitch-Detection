@@ -109,6 +109,6 @@ The next table illustrates the validation performance difference (accuracy) w.r.
 
 | Dataset       | Model    | Uniform Class Noise | Anomalies |
 |---------------|----------|:---------------------:|:-----------:|
-| MNIST         | ResNet-20   | -2.00 %             | -0.60 %    |
-| Fashion MNIST | ResNet-20   | -0.10 %               | +3.10 %     |
-| CIFAR-10      | ResNet-20   | 0.00  %              | +1.90 %     |
+| MNIST         | ResNet-20   | -0.2             | -0.006    |
+| Fashion MNIST | ResNet-20   | -0.01               | 0.31     |
+| CIFAR-10      | ResNet-20   | 0.00               | +0.19     |
