@@ -122,10 +122,10 @@ The next figure shows the relation of increasing self influence (SI) values and 
 MNIST-C: https://zenodo.org/records/3239543
 CIFAR-C: https://zenodo.org/records/2535967
 
-In the subsequent plots PCID is compared with the rest influence-based signals on detecting images with corruptions in MNIST and CIFAR-10 training sets. We followed the same evaluation pipeline as described in the paper. Specifically, we injected 10% brightness and stripe corruptions generated using [mnist-c](https://github.com/google-research/mnist-c). We chose these two corruptions based on their impact on the models' generalisation according to \[Mu et al.\]. The experiments were run for ResNet-20. PCID is the only signal that detects corrupted images in MNIST. For CIFAR-10, PCID outperforms the rest signals for stripe corruption and is on par with GD-class for brightness corruption.
+In the subsequent plots PCID is compared with the rest influence-based signals on detecting images with corruptions in MNIST and CIFAR-10 training sets. We followed the same evaluation pipeline as described in the paper. Specifically, we injected 10% brightness and stripe corruptions generated using [mnist-c](https://github.com/google-research/mnist-c). We chose these two corruptions based on their impact on the models' generalisation according to \[Mu et al.\]. The experiments were run for ResNet-20 and ConvNeXt. PCID is the only signal that detects corrupted images in MNIST. For CIFAR-10, PCID outperforms the rest signals for stripe corruption and is on par with GD-class for brightness corruption.
 
 Mu, Norman, and Justin Gilmer. "Mnist-c: A robustness benchmark for computer vision." arXiv preprint arXiv:1906.02337 (2019).
 
-![corruptions_resnet20](https://github.com/anonymoususr95/Influence-Based-Glitch-Detection/assets/159195769/642734fe-b6db-40f3-9e1c-010758528ff0)
+![corruptions](https://github.com/anonymoususr95/Influence-Based-Glitch-Detection/assets/159195769/fad008a9-dbcb-4c43-88df-9150930e58eb)
 
 
