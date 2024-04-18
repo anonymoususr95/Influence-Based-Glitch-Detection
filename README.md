@@ -128,4 +128,9 @@ Mu, Norman, and Justin Gilmer. "Mnist-c: A robustness benchmark for computer vis
 
 ![corruptions](https://github.com/anonymoususr95/Influence-Based-Glitch-Detection/assets/159195769/fad008a9-dbcb-4c43-88df-9150930e58eb)
 
+### Train Glitch Detection using a Partially Clean Validation Set
+
+In the following plot, we show the detection performance of the influence-based signals when both train and test sets contain mislabeled samples. The mislabeled ratio is 10% on both sets. CNCI signal achieves an 80% F1-Score on average, outperforming all existing influence signals. Thus, CNCI can still detect mislabeled samples even when the clean-validation-set assumption does not hold.
+
+![dirty_val](https://github.com/anonymoususr95/Influence-Based-Glitch-Detection/assets/159195769/d5b75124-71dc-4830-b570-a5ce57e3d82d)
 
