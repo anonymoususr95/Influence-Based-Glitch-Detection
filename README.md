@@ -134,3 +134,8 @@ In the following plot, we show the detection performance of the influence-based 
 
 ![dirty_val](https://github.com/anonymoususr95/Influence-Based-Glitch-Detection/assets/159195769/d5b75124-71dc-4830-b570-a5ce57e3d82d)
 
+### Mislabeled Samples Detection on ImageNet Dogs
+
+We have employed a challenging version of a subset of imagenet that contains 10 different dog breeds, taken from [FastAI](https://github.com/fastai/imagenette?tab=readme-ov-file#imagewoof). This dataset contains 320x333 high quality images. We injected 10% mislabeled samples in train set and run the influence-based signals to measure the detection performance. CNCI outperforms all existing influence-based signals.  It is worth noting that for both ConvNeXt and ViT, CNCI achieves the highest detection performance in ImageNet-Dogs (resized to 224x224) and the lowest in MNIST, which contains 28x28 images. We also observe a substantial boost in detection performance for all influence signals in Imagenet-Dogs. This is a justification of our previous claim, i.e., that with higher quality datasets, we expect more accurate influence estimates and therefore better detection using the influence signals.
+
+![imagewoof](https://github.com/anonymoususr95/Influence-Based-Glitch-Detection/assets/159195769/f86b1550-57a7-4284-ba5b-3b8a9c625536)
