@@ -130,9 +130,21 @@ Mu, Norman, and Justin Gilmer. "Mnist-c: A robustness benchmark for computer vis
 
 ### Glitch Detection in Training using a Partially Cleaned Validation Set
 
-In the following group of plots, we show the detection performance of CNCI when both train and test sets contain mislabeled samples (uniform and class-based label noise). The mislabeled ratio is 10% on training and 20% on the validation set. The validation set is 15% w.r.t. the training set. The results for tabular and image datasets are presented below. Each circle denotes a different combination of model and dataset. The diagonal like means no detection performance difference (in terms of F1) when the label noise exists in the validation set. *The dirty validation set slightly affects the detection efficacy of CNCI signal, making it robust to practical situations where the access to a totally clean validation set is not possible.*
+In the following group of plots we show the detection performance of CNCI when both train and test sets contain mislabeled samples (uniform and class-based label noise). The mislabeled ratio is 10% on training and 20% on the validation set. The validation set is 15% w.r.t. the training set. The results for tabular and image datasets are presented below. Each circle denotes a different combination of model and dataset. The diagonal like means no detection performance difference (in terms of F1) when the label noise exists in the validation set. *The dirty validation set slightly affects the detection efficacy of CNCI signal, making it robust to practical situations where the access to a totally clean validation set is not possible.*
 
 ![dirty_val_ablation](https://github.com/user-attachments/assets/56bea8dd-07c2-4e9a-b66d-673599934411)
+
+### Comparative analysis of label noise detection and repair on tabular data
+
+In the following group of plots it is depicted the detection performance of CNCI vs the dedicated detector CleanLab along with the label repair accuracy, i.e., how accurate are the repair suggestions by each method. In plots (a) and (b) CNCI outperforms CleanLab for both label noise types across the three tabular and vision datasets averaged by the corresponding ML model. Regarding the label repair, CNCI suggests more accurate labels as repairs than CleanLab except for the FT-Transformer in the class-based noise. To ensure a fair comparison the experiment considers all the mislabeled samples (detected or not) and measures how accurately the methods propose label fixes. It is important to note that if a method detects many samples incorrectly as mislabeled, then, the labels of many clean samples will be altered. *CNCI reduces this phenomenon by performing a more accurate detection of both label noise types than CleanLab in tabular data, accompanied by accurate label repair suggestions*.
+
+![tab-cnci-cleanlab](https://github.com/user-attachments/assets/8f67f8ef-613b-40ed-9523-4a793e62cb4d)
+
+### Execution time of signals as part of model training
+
+In the following group of plots it is depicted the execution time of the CNCI (for image and tabular data) and PCID (for image data). Both signals take only a fraction of the toal model training time (fine-tuning for foundation vision models and training-from-sratch for the tabular DNNs). Thus, the proposed signals are proven to be an efficient and effective option especially for large models such as Vision Transformer. 
+
+![time](https://github.com/user-attachments/assets/cc63c9ba-d9dc-48ac-9987-df6b91a767af)
 
 
 ### Mislabeled Samples Detection on ImageNet Dogs
