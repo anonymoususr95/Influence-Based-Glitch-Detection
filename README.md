@@ -128,11 +128,12 @@ Mu, Norman, and Justin Gilmer. "Mnist-c: A robustness benchmark for computer vis
 
 ![corruptions](https://github.com/anonymoususr95/Influence-Based-Glitch-Detection/assets/159195769/fad008a9-dbcb-4c43-88df-9150930e58eb)
 
-### Train Glitch Detection using a Partially Clean Validation Set
+### Glitch Detection in Training using a Partially Cleaned Validation Set
 
-In the following plot, we show the detection performance of the influence-based signals when both train and test sets contain mislabeled samples. The mislabeled ratio is 10% on both sets. CNCI signal achieves an 80% F1-Score on average, outperforming all existing influence signals. Thus, CNCI can still detect mislabeled samples even when the clean-validation-set assumption does not hold.
+In the following group of plots, we show the detection performance of CNCI when both train and test sets contain mislabeled samples (uniform and class-based label noise). The mislabeled ratio is 10% on training and 20% on the validation set. The validation set is 15% w.r.t. the training set. The results for tabular and image datasets are presented below. Each circle denotes a different combination of model and dataset. The diagonal like means no detection performance difference (in terms of F1) when the label noise exists in the validation set. *The dirty validation set slightly affects the detection efficacy of CNCI signal, making it robust to practical situations where the access to a totally clean validation set is not possible.*
 
-![dirty_val](https://github.com/anonymoususr95/Influence-Based-Glitch-Detection/assets/159195769/d5b75124-71dc-4830-b570-a5ce57e3d82d)
+![dirty_val_ablation](https://github.com/user-attachments/assets/56bea8dd-07c2-4e9a-b66d-673599934411)
+
 
 ### Mislabeled Samples Detection on ImageNet Dogs
 
