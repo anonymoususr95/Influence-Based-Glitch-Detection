@@ -19,6 +19,17 @@ Run `make demo_mixed` that runs CFRank (the proposed mixed signal), CNCI, and PC
 ![pipeline](https://github.com/anonymoususr95/Influence-Based-Glitch-Detection/assets/159195769/f6af369b-c00e-4602-bd9d-f2956560b061)
 
 ## Training Settings 
+Subsequently we report the datasets information:
+
+| **Dataset**   | **Training Size** | **Validation Size** | **#Classes** |
+|---------------|-------------------|---------------------|--------------|
+| MNIST         | 60K               | 10K                 | 10           |
+| Fashion-MNIST | 60K               | 10K                 | 10           |
+| CIFAR-10      | 60K               | 10K                 | 10           |
+| Forest Cover  | 116K              | 37K                 | 7            |
+| Jannis        | 320K              | 80K                 | 2            |
+| Epsilon       | 53K               | 13K                 | 4            |
+
 Subsequently we report per dataset the learning rate, batch size and epochs that we train each foundational model. 
 
 | Dataset       | Model    | Learning Rate | Batch Size | Epochs |
@@ -136,16 +147,17 @@ In the following group of plots we show the detection performance of CNCI when b
 
 ### Comparative analysis of label noise detection and repair on tabular data
 
-In the following group of plots it is depicted the detection performance of CNCI vs the dedicated detector CleanLab along with the label repair accuracy, i.e., how accurate are the repair suggestions by each method. In plots (a) and (b) CNCI outperforms CleanLab for both label noise types across the three tabular and vision datasets averaged by the corresponding ML model. Regarding the label repair, CNCI suggests more accurate labels as repairs than CleanLab except for the FT-Transformer in the class-based noise. To ensure a fair comparison the experiment considers all the mislabeled samples (detected or not) and measures how accurately the methods propose label fixes. It is important to note that if a method detects many samples incorrectly as mislabeled, then, the labels of many clean samples will be altered. *CNCI reduces this phenomenon by performing a more accurate detection of both label noise types than CleanLab in tabular data, accompanied by accurate label repair suggestions*.
+The following group of plots depicts the detection performance of CNCI vs the dedicated detector CleanLab along with the label repair accuracy, i.e., how accurate are the repair suggestions by each method. In plots (a) and (b) CNCI outperforms CleanLab for both label noise types across the three tabular and vision datasets averaged by the corresponding ML model. Regarding the label repair, CNCI suggests more accurate labels as repairs than CleanLab except for the FT-Transformer in the class-based noise. To ensure a fair comparison the experiment considers all the mislabeled samples (detected or not) and measures how accurately the methods propose label fixes. It is important to note that if a method detects many samples incorrectly as mislabeled, then, the labels of many clean samples will be altered. *CNCI reduces this phenomenon by performing a more accurate detection of both label noise types than CleanLab in tabular data, accompanied by accurate label repair suggestions*.
 
 ![tab-cnci-cleanlab](https://github.com/user-attachments/assets/8f67f8ef-613b-40ed-9523-4a793e62cb4d)
 
 ### Execution time of signals as part of model training
 
-In the following group of plots it is depicted the execution time of the CNCI (for image and tabular data) and PCID (for image data). Both signals take only a fraction of the toal model training time (fine-tuning for foundation vision models and training-from-sratch for the tabular DNNs). Thus, the proposed signals are proven to be an efficient and effective option especially for large models such as Vision Transformer. 
+The following group of plots depicts the execution time of the CNCI (for image and tabular data) and PCID (for image data). To calculate the execution time we considered the time of the additional influence step with the counterfactual labels and the computations between the samples O(n*m*|C|) where n is the training size, m is the validation size, and |C| the number of classes. As in any influence function, the size (in terms of parameters) of the layer(s) whose gradients contribute to the influence computation will affect the execution time. *Note that in the reported execution time we do not make use of a GPU; such utilization would have accelerated further the signals’ execution time, especially for transformer architectures*.  Both signals take only a small fraction (~1/3 on average) of the total model training time. Thus, the proposed signals are proven to be an efficient and effective option, even for large models such as the Vision Transformer (ViT). 
 
-![time](https://github.com/user-attachments/assets/cc63c9ba-d9dc-48ac-9987-df6b91a767af)
+![time (1)](https://github.com/user-attachments/assets/1a22bda1-cfaf-4062-9f19-0ca833db5d5a)
 
+Since no gpu is used, we selected 10% of the total sample size (as stated in the manuscript). The initial dataset train/validation sizes and other information are reported in the [beginning](https://github.com/anonymoususr95/Influence-Based-Glitch-Detection?tab=readme-ov-file#training-settings).
 
 ### Mislabeled Samples Detection on ImageNet Dogs
 
