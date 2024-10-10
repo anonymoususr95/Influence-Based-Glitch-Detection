@@ -153,7 +153,21 @@ The following group of plots depicts the detection performance of CNCI vs the de
 
 ### Execution time of signals as part of model training
 
-The following group of plots depicts the execution time of the CNCI (for image and tabular data) and PCID (for image data). To calculate the execution time we considered the time of the additional influence step with the counterfactual labels and the computations between the samples O(n*m*|C|) where n is the training size, m is the validation size, and |C| the number of classes. As in any influence function, the size (in terms of parameters) of the layer(s) whose gradients contribute to the influence computation will affect the execution time. *Note that in the reported execution time we do not make use of a GPU; such utilization would have accelerated further the signals’ execution time, especially for transformer architectures*.  Both signals take only a small fraction (~1/3 on average) of the total model training time. Thus, the proposed signals are proven to be an efficient and effective option, even for large models such as the Vision Transformer (ViT). 
+The following group of plots depicts the execution time of the CNCI (for image and tabular data) and PCID (for image data). 
+
+The time of the method to run end-to-end is decomposed as follows:
+
+* T1. Model training: in this stage the model is trained for few epochs **T** and the gradients of the influence layers (the layers that will be considered for the infleunce computations) are stored in the disk for every sample.
+
+* T2. To compute the train-to-validation influence matrix **O(*Tnmd*)** computations are required, where the training samples' partial derivatives are **n** x ***d** (**n**: training sample size and **d**: number of parameters of infleunce layers) and the validation samples' partial derivates results in a matrix **m** x **d** (**m**: validation sample size and m << n).
+
+* T3. To compute the proposed counterfactual signals (CNCI and PCID) an additional infleunce step, based on the weights of the last epoch, is required resulting to a new influence matrix **O(*nmd*)**. 
+  
+* T4. To finally compute CNCI and PCID **O(*nm|C|*)** computations are required.
+
+From the previous steps, *T1* is the cost to train the target model and *T2* is the cost to calculate any joint signal (such as AAI, MI and GD-Class included in our work). The proposed counterfactual signals (CNCI and PCID) add a small additional overhead with the extra infleunce step using the counterfactual class of each sample resulting to *T3*. Note that for the mislabeled samples this has an additional benefit of repairing a potential label issue, as shown in the experiments of the paper. It is important to note that the execution time of *T1*, *T2* and *T3* are <ins>significantly affected</ins> by the (i) model size, (ii) the resources such as  GPU, CPU, and main memory, and (iii) the library implementation. The final step *T4* is not dependent on the model size or the available resources.
+
+*Note that in the reported execution time we do not make use of a GPU; such utilization would have accelerated further the signals’ execution time, especially for models with many parameters such as transformer architectures*. Both signals take only a small fraction (~1/3 on average) of the total model training time. Thus, they are shown to be an efficient and effective option, even for large models such as the Vision Transformer (ViT). 
 
 ![time (1)](https://github.com/user-attachments/assets/1a22bda1-cfaf-4062-9f19-0ca833db5d5a)
 
