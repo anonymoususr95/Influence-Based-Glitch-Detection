@@ -151,7 +151,7 @@ The following group of plots depicts the detection performance of CNCI vs the de
 
 ![tab-cnci-cleanlab](https://github.com/user-attachments/assets/8f67f8ef-613b-40ed-9523-4a793e62cb4d)
 
-### Execution time of signals as part of model training
+### Execution time of the influence signals 
 
 The following group of plots depicts the execution time of the CNCI (for image and tabular data) and PCID (for image data). 
 
