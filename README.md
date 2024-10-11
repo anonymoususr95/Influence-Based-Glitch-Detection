@@ -167,11 +167,11 @@ The time of the method to run end-to-end is decomposed as follows:
 
 From the previous steps, *T1* is the cost to train the target model and *T2* is the cost to calculate any joint signal (such as AAI, MI and GD-Class included in our work). The proposed counterfactual signals (CNCI and PCID) add a small additional overhead with the extra infleunce step using the counterfactual class of each sample resulting to *T3*. Note that for the mislabeled samples this has an additional benefit of repairing a potential label issue, as shown in the experiments of the paper. It is important to note that the execution time of *T1*, *T2* and *T3* are <ins>significantly affected</ins> by the (i) model size, (ii) the resources such as  GPU, CPU, and main memory, and (iii) the library implementation. The final step *T4* is not dependent on the model size or the available resources.
 
-*Note that in the reported execution time we do not make use of a GPU; such utilization would have accelerated further the signals’ execution time, especially for models with many parameters such as transformer architectures*. Both signals take only a small fraction (~1/3 on average) of the total model training time. Thus, they are shown to be an efficient and effective option, even for large models such as the Vision Transformer (ViT). 
+*Note that in the reported execution times we do not make use of a GPU; such utilization would have accelerated further the signals’ execution time, especially for models with many parameters such as transformer architectures*. 
 
-![time (1)](https://github.com/user-attachments/assets/1a22bda1-cfaf-4062-9f19-0ca833db5d5a)
+In the following figure, both signals take only a small fraction ~8% of the total model training time. For a meaningful comparison we train the models on MNIST keeping 10% of the samples for the same number of epochs. Both signals are shown to be an efficient and effective option, even for large models such as the Vision Transformer (ViT). 
 
-Since no gpu is used, we selected 10% of the total sample size (as stated in the manuscript). The initial dataset train/validation sizes and other information are reported in the [beginning](https://github.com/anonymoususr95/Influence-Based-Glitch-Detection?tab=readme-ov-file#training-settings).
+![img](https://github.com/user-attachments/assets/4529951e-532f-4ead-8c63-b0ba4578f9b6)
 
 ### Mislabeled Samples Detection on ImageNet Dogs
 
