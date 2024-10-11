@@ -161,7 +161,7 @@ The time of the method to run end-to-end is decomposed as follows:
 
 * T2. To compute the train-to-validation influence matrix **O(*Tnmd*)** computations are required, where the training samples' partial derivatives are **n** x ***d** (**n**: training sample size and **d**: number of parameters of infleunce layers) and the validation samples' partial derivates results in a matrix **m** x **d** (**m**: validation sample size and m << n).
 
-* T3. To compute the proposed counterfactual signals (CNCI and PCID) an additional infleunce step, based on the weights of the last epoch, is required resulting to a new influence matrix **O(*nmd*)**. 
+* T3. To compute the proposed the counterfactual influence matrix an additional infleunce step, based only on the weights of the last epoch, is required resulting to **O(*nmd*)**. 
   
 * T4. Finally, to compute CNCI and PCID **O(*nm|C|*)** computations are required, where |C| is the number of classes.
 
